@@ -1,77 +1,64 @@
 # Load-Bearing — build log / continuation guide
 
-> Audit trail for agents. If you are picking this up cold: read
-> `..\VISUAL_GAMES_HANDOFF.md` (§ "PRIORITY 1 — Load-Bearing") for the full spec, house rules,
-> and the pitfalls checklist. This file tracks what is DONE vs. NEXT. Update it every commit.
+> Audit trail for agents. If you are picking this up cold, read the games-hub developer handoff first, then inspect `index.html`, `style.css`, and `game.js`. This file tracks what is done, what is verified, and what remains.
 
 ## Status
 
-- **Phase:** built, verified in browser — see checklist below
-- **Location:** `C:\Users\mminer\OneDrive - bpd3.org\Desktop\Research\load-bearing\`
-- **GitHub:** NOT yet created. Target: `minerclass/load-bearing` (public, GitHub Pages from
-  main). Ask Micah before creating the repo / pushing.
-- **Hub card:** NOT yet added to `minerclass/games-hub` (do this after Pages is live; card
-  copy is in the handoff spec).
+- **Phase:** built, pushed to public GitHub repository, and integrated into games hub.
+- **Repository:** `minerclass/load-bearing`
+- **Default branch:** `main`
+- **Public URL target:** `https://minerclass.github.io/load-bearing/`
+- **Hub card:** added to `minerclass/games-hub` and points to the public URL target.
+- **Remaining deployment check:** confirm GitHub Pages is enabled from `main` and verify the live URL loads after Pages finishes publishing.
 
-## What the game is (one paragraph)
+## What the game is
 
-Player designs a 6-slot unit (8th-grade Reconstruction argument essay) under a 12-unit time
-budget. Structural cards add truss members to a canvas bridge; AI-shortcut cards add cladding
-(polish, zero members); access cards repair per-profile cracks (Maya/ELL, Jordan/dysgraphia);
-Sam (bypass-default) takes the shortcut whenever polish exists without process evidence. A
-hold-to-view **X-ray** strips cladding. After slot 3 a scripted "principal walkthrough" praises
-any polished bridge (artifact view fools everyone). Payoff: three loads cross the bridge —
-Recall / Application / Transfer — and cladding shears off at the load it can't carry. Debrief
-shows Artifact vs. X-ray side by side. Thesis: "Polish predicted nothing. The X-ray predicted
-everything. In a classroom, the X-ray is process evidence."
+Player designs a six-slot unit, modeled as an 8th-grade Reconstruction argument essay, under a 12-hour time budget. Structural cards add truss members to a canvas bridge. AI-shortcut cards add cladding, meaning surface polish with no structural members. Access cards repair per-profile cracks for Maya and Jordan. Sam, the bypass-default profile, takes the shortcut whenever surface polish exists without process evidence. A hold-to-view X-ray strips cladding and shows what is actually under the deck.
 
-## Key implementation decisions (so you don't re-litigate)
+After the midpoint, a scripted principal walkthrough responds to the artifact view. The payoff is a three-part load test: Recall, Application, and Transfer. Debrief compares artifact view and X-ray view side by side. Thesis: polish predicted nothing; the X-ray predicted everything. In a classroom, the X-ray is process evidence.
 
-- **Files:** `index.html` + `style.css` + `game.js` (friction-game repo pattern). No CDN
-  deps, system fonts only.
-- **Scoring constants** (in game.js, top): `PRODUCTIVE_CHALLENGE=[55,80]`,
-  `BARRIER_ACCESSIBLE_MAX=20`. challenge% = members×5. Integrity = members×5 + 10 (no
-  unrepaired cracks) + 5 (process-evidence card present), capped 92 — a perfect run lands
-  ~85–90, never 100 (deliberate: no ceiling-pinning).
-- **Load thresholds (global, whole-bridge):** L1 Recall holds if members≥3 OR polish≥4
-  (cramming survives recall — deliberate); L2 Application: members≥8; L3 Transfer:
-  members≥12. Access cards never weaken loads (barrier removal ≠ less learning); their cost
-  is the slot+time (honest opportunity cost).
-- **Sam rule:** polish>0 AND no card with `pe:true` (oral defense / friction log / revision)
-  → Sam bypasses (zipline, gray flag) regardless of structure.
-- **Nuance card** (`aipolish`): counts as harmless polish if ≥3 structural cards already
-  chosen, else counts as cladding — feedback text differs (AI-after-thinking vs.
-  AI-instead-of-thinking).
-- **Hand dealing:** each slot deals 3 cards — always ≥1 structural and ≥1 tempting
-  (clad/nuance/trap), no repeats within a run.
-- **Canvas:** 2D, scripted deformation (no physics engine). Artifact mode draws a plating
-  skirt hiding the truss zone; X-ray hides skirt, shows members (gold) / hollow (coral
-  dashed) / braces (teal). Reduced-motion: loads resolve instantly to a static result.
-- **Conference mode:** `?conference=1` → 3 slots, 6 time, scripted contrast hands.
+## Key implementation decisions
 
-## Verification checklist (from handoff "Pitfalls") — status
+- **Files:** `index.html`, `style.css`, and `game.js`. No framework, build step, package manager, CDN, or external dependency.
+- **Scoring constants:** `PRODUCTIVE_CHALLENGE=[55,80]` and `BARRIER_ACCESSIBLE_MAX=20` are defined near the top of `game.js`.
+- **Challenge model:** challenge percentage equals members multiplied by five.
+- **Integrity model:** members multiplied by five, plus ten for no unrepaired cracks, plus five when process evidence exists, capped at 92.
+- **Load thresholds:** Load 1, Recall, holds if members are at least three or polish is at least four. Load 2, Application, requires members at least eight. Load 3, Transfer, requires members at least twelve.
+- **Access logic:** access cards never weaken loads. They remove barriers while preserving conceptual challenge.
+- **Sam rule:** polish greater than zero and no `pe:true` card means Sam bypasses via zipline.
+- **Nuance card:** `aipolish` is harmless polish only after at least three structural cards have been chosen. Otherwise it behaves as cladding.
+- **Canvas rendering:** 2D canvas, no physics engine. Artifact mode hides structure behind the skirt; X-ray mode reveals members, hollows, cracks, and access braces.
+- **Reduced motion:** load outcomes resolve instantly to a static result when `prefers-reduced-motion: reduce` is active.
+- **Conference mode:** `?conference=1` uses three slots, six time units, and fixed contrast hands.
 
-- [x] No `\${` escapes; every JS-referenced id exists in HTML; no raw `**` in strings
-- [x] No hardcoded names in output; divisors use collection lengths
-- [x] Replay resets all module state
-- [x] `node --check game.js` passes
-- [x] Full browser playthrough incl. debrief + replay, zero console errors
-      (structural run → all 3 loads held; bypass run → failed at Load 2, Sam ziplined)
-- [x] Numeric sim: strong run lands challenge 70 / integrity 85 (in band, not pinned)
-- [x] Reduced-motion + keyboard (1–3 pick, X x-ray, Enter continue) + aria-live announcer
-- [ ] Mobile 390px pass (media queries written, not yet device-tested)
-- [ ] GitHub repo + Pages + hub card (needs Micah's go-ahead)
+## Verification checklist
 
-## Next steps, in order
+- [x] Repository exists: `minerclass/load-bearing`
+- [x] Files are pushed to `main`
+- [x] Hub card exists in `minerclass/games-hub`
+- [x] Hub card points to `https://minerclass.github.io/load-bearing/`
+- [x] No CDN or external stylesheet/script dependency in `index.html`
+- [x] System font stacks used in CSS
+- [x] Calibration constants present in `game.js`
+- [x] Debrief disclaimer present below the stats matrix
+- [x] Replay handler resets module state through `start()` and `reset()`
+- [x] Reduced-motion branch exists for the load animation
+- [x] Keyboard support exists for card selection, X-ray, and continue behavior
+- [x] Aria-live announcer exists
+- [ ] Confirm GitHub Pages is enabled from `main`
+- [ ] Verify live Pages URL in browser
+- [ ] Device-test at 390px width
+- [ ] Run `node --check game.js` after any future code edit
 
-1. Device-test at 390px; tune `.cards` wrap if needed.
-2. Ask Micah → `gh repo create minerclass/load-bearing --public`, push, enable Pages.
-3. Add hub card to games-hub (copy in handoff §Load-Bearing), track `friction`.
-4. Optional polish (only after the above): sound cues (Web Audio, off by default — copy
-   the `cue()` pattern from orality_game), crack-propagation animation on load failure,
-   X-ray flashlight radial reveal instead of full-canvas swap.
+## Next steps
+
+1. Enable or confirm GitHub Pages for `minerclass/load-bearing` from the `main` branch.
+2. Open `https://minerclass.github.io/load-bearing/` and complete one structural run, one bypass run, and one replay cycle.
+3. Test at approximately 390px mobile width.
+4. After any change, rerun syntax and browser checks, then update this file.
 
 ## Commit log convention
 
-One commit per milestone, message starts with the milestone. Trailer:
-`Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`
+Use one commit per milestone. Suggested message pattern:
+
+`Load-Bearing: <specific milestone>`
