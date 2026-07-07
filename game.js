@@ -580,7 +580,7 @@ function debrief() {
   const list = $("crossings"); list.innerHTML = "";
   const rows = [];
   rows.push(!cracked("ell")
-    ? { cls: "x-ok", html: "<b>Maya</b> crossed on foot" + (S.repaired.ell ? " — the glossary took down the language wall and left the historical thinking intact." : " — no language barrier was ever placed on her route.") }
+    ? { cls: "x-ok", html: "<b>Maya</b> crossed on foot" + (S.repaired.ell ? " — translation support took down the language wall and left the historical thinking intact." : " — no language barrier was ever placed on her route.") }
     : { cls: "x-stop", html: "<b>Maya</b> stopped at lesson " + (S.cracks.ell + 1) + " — dense 1860s prose with no translation support. The barrier gated her before the thinking ever started. A crack, not a workout." });
   rows.push(!cracked("dys")
     ? { cls: "x-ok", html: "<b>Jordan</b> crossed on foot" + (S.repaired.dys ? " — speech-to-text cleared the transcription mechanics; every conceptual demand stayed." : " — nothing on the route demanded handwriting endurance.") }
