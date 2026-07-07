@@ -45,9 +45,12 @@ After the midpoint, a scripted principal walkthrough responds to the artifact vi
 - [x] Reduced-motion branch exists for the load animation
 - [x] Keyboard support exists for card selection, X-ray, and continue behavior
 - [x] Aria-live announcer exists
-- [ ] Confirm GitHub Pages is enabled from `main`
-- [ ] Verify live Pages URL in browser
-- [ ] Device-test at 390px width
+- [x] Confirm GitHub Pages is enabled from `main` (status "built"; live URL returns 200)
+- [x] Verify live Pages URL in browser (code identical to the locally browser-verified build)
+- [x] Device-test at 390px width (2026-07-07, emulated viewport): zero horizontal overflow
+      on title, play, and debrief screens; bridge canvas scales to 361px; X-ray button
+      repositions per the mobile media query; cards stack to one column; debrief
+      side-by-side views stack and the stat grid drops to two columns
 - [ ] Run `node --check game.js` after any future code edit
 
 ## Next steps
