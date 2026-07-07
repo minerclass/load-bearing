@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Load-Bearing — design a unit, watch it become a bridge. Structural thinking holds the transfer load; polish alone shears off. A game about pedagogical friction by Micah Miner.">
+<title>Load-Bearing | A Pedagogical Friction Game</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="announcer" class="sr-only" aria-live="polite"></div>
+<div class="wrap">
+
+  <!-- TITLE -->
+  <section class="screen active" id="title">
+    <p class="kicker">A pedagogical-friction game &middot; Instructional design</p>
+    <h1>Load-<em>Bearing</em></h1>
+    <p class="lede">Two bridges can look identical. Only the load test tells you which one was <em>built</em>.</p>
+    <div class="mentor">
+      <div>
+        <span class="who">The site engineer</span>
+        <p>&ldquo;You have six lessons and twelve hours to get a class across the gorge of an argument: <em>Was Reconstruction a success, a failure, or both &mdash; for whom?</em> Every choice you make either adds structure under the deck or shine on top of it. From the road, nobody can tell the difference. The load can.&rdquo;</p>
+      </div>
+    </div>
+    <ul class="howto">
+      <li><b>Pick 1 of 3 cards</b> per lesson slot &mdash; watch the bridge take shape.</li>
+      <li><b>Hold the X-ray</b> (or press <kbd>X</kbd>) any time to see what's really under the deck.</li>
+      <li><b>Mind the budget.</b> Deep work costs time. Shortcuts are free. That's why they tempt.</li>
+      <li><b>Then the load test:</b> Recall, Application, Transfer &mdash; each heavier than the last.</li>
+    </ul>
+    <p style="margin-top:18px;"><button class="btn" id="startBtn">Open the site plan &rarr;</button></p>
+    <p class="credit">Built on Micah Miner's pedagogical-friction framework (noetic friction; desirable difficulties; the artifact of learning vs. the learning). <a href="https://minerclass.github.io/games-hub/">&larr; Games Hub</a></p>
+  </section>
+
+  <!-- PLAY -->
+  <section class="screen" id="play">
+    <div class="topline">
+      <span id="slotLabel">Lesson 1 of 6</span>
+      <span class="budget" id="budgetLabel">Time budget: <b id="budgetVal">12</b> hrs</span>
+    </div>
+
+    <div class="hud">
+      <div class="meter">
+        <div class="top"><span>Structure <span class="hint">(members)</span></span><span id="structNum">0</span></div>
+        <div class="bar struct" role="progressbar" aria-label="Structure" aria-valuemin="0" aria-valuemax="18" aria-valuenow="0" id="structBarWrap"><span id="structBar"></span></div>
+      </div>
+      <div class="meter">
+        <div class="top"><span>Surface polish</span><span id="polishNum">0</span></div>
+        <div class="bar polish" role="progressbar" aria-label="Surface polish" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" id="polishBarWrap"><span id="polishBar"></span></div>
+      </div>
+      <div class="profiles" id="profiles" aria-label="Student profiles">
+        <span class="prof ok" id="prof-ell" title="Maya — multilingual learner, strong reasoner">Maya</span>
+        <span class="prof ok" id="prof-dys" title="Jordan — dysgraphia">Jordan</span>
+        <span class="prof ok" id="prof-sam" title="Sam — high achiever, shortcut-prone">Sam</span>
+      </div>
+    </div>
+
+    <div class="bridgebox">
+      <canvas id="bridge" width="740" height="330" aria-label="Bridge diagram showing the unit's structure"></canvas>
+      <button class="xray" id="xrayBtn" aria-pressed="false">Hold for X-ray <kbd>X</kbd></button>
+      <div class="viewtag" id="viewTag">ARTIFACT VIEW</div>
+    </div>
+
+    <p class="prompt" id="promptLine">Choose the work for this lesson &mdash; press 1&ndash;3 or click.</p>
+    <div class="cards" id="cards"></div>
+
+    <div class="feedback" id="feedback" style="display:none">
+      <div class="fbkind" id="fbKind"></div>
+      <div class="fbtext" id="fbText"></div>
+    </div>
+    <div class="row"><button class="btn" id="continueBtn" style="display:none">Continue &rarr;</button></div>
+  </section>
+
+  <!-- INSPECTION (modal-ish interstitial) -->
+  <section class="screen" id="inspection">
+    <p class="kicker">Mid-unit walkthrough</p>
+    <h2>The principal stops by</h2>
+    <div class="mentor inspect">
+      <div>
+        <span class="who">Principal, from the doorway</span>
+        <p id="inspectQuote"></p>
+      </div>
+    </div>
+    <p class="inspectnote" id="inspectNote"></p>
+    <p style="margin-top:16px;"><button class="btn" id="inspectBtn">Back to the unit &rarr;</button></p>
+  </section>
+
+  <!-- LOAD TEST -->
+  <section class="screen" id="loadtest">
+    <p class="kicker">Assessment day</p>
+    <h2 id="loadTitle">The load test</h2>
+    <p class="loadsub" id="loadSub">Three tasks cross the bridge, each heavier than the last.</p>
+    <div class="bridgebox">
+      <canvas id="bridge2" width="740" height="330" aria-label="Bridge load test"></canvas>
+      <div class="viewtag" id="viewTag2">LOAD TEST</div>
+    </div>
+    <div class="loadrow" id="loadRow">
+      <span class="loadchip" id="load-0">1 &middot; Recall</span>
+      <span class="loadchip" id="load-1">2 &middot; Application</span>
+      <span class="loadchip" id="load-2">3 &middot; Transfer</span>
+    </div>
+    <div class="feedback" id="loadFeedback" style="display:none">
+      <div class="fbkind" id="loadFbKind"></div>
+      <div class="fbtext" id="loadFbText"></div>
+    </div>
+    <div class="row"><button class="btn" id="loadBtn">Run Load 1 &rarr;</button></div>
+  </section>
+
+  <!-- DEBRIEF -->
+  <section class="screen" id="debrief">
+    <p class="kicker">Debrief</p>
+    <h2 id="verdictHead"></h2>
+    <p id="verdictSub" class="loadsub"></p>
+
+    <div class="sidebyside">
+      <figure>
+        <canvas id="finalArtifact" width="360" height="180"></canvas>
+        <figcaption>What everyone saw <span class="cap">(artifact view)</span></figcaption>
+      </figure>
+      <figure>
+        <canvas id="finalXray" width="360" height="180"></canvas>
+        <figcaption>What was there <span class="cap">(X-ray view)</span></figcaption>
+      </figure>
+    </div>
+
+    <div class="statrow">
+      <div class="stat"><span class="lbl">Structural integrity</span><span class="val" id="statIntegrity">0</span></div>
+      <div class="stat"><span class="lbl">Surface polish</span><span class="val" id="statPolish">0</span></div>
+      <div class="stat"><span class="lbl">Loads held</span><span class="val" id="statLoads">0 / 3</span></div>
+      <div class="stat"><span class="lbl">Productive challenge</span><span class="val" id="statChallenge">0%</span></div>
+    </div>
+
+    <h3 class="subhead">Who got across</h3>
+    <ul class="crossings" id="crossings"></ul>
+
+    <div class="thesis" id="thesisBox"></div>
+    <p class="disclaimer">*Note: All scores, stats, and achievements are illustrative models of the pedagogical friction framework, not validated learning assessment instruments.</p>
+    <p style="margin-top:16px;"><button class="btn" id="replayBtn">Design the unit again &rarr;</button>
+    <a class="home" href="https://minerclass.github.io/games-hub/">&larr; Back to the Games Hub</a></p>
+  </section>
+
+</div>
+<script src="game.js"></script>
+</body>
+</html>
