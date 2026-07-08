@@ -53,6 +53,17 @@ After the midpoint, a scripted principal walkthrough responds to the artifact vi
       side-by-side views stack and the stat grid drops to two columns
 - [ ] Run `node --check game.js` after any future code edit
 
+## 2026-07-07 engagement upgrade: prediction beat + X-ray coach hint
+
+Each load now opens with a call — "It holds / It fails" (keys 1/2) — before the weight
+rolls; the per-load feedback scores the call, and the debrief adds a JUDGMENT CALIBRATION
+line (calls correct / loads run) framing prediction accuracy as the calibration skill the
+framework asks of teachers. The first cladding pick surfaces a one-line X-ray hint, teaching
+the core verb at the exact moment artifact and trace first diverge (shown once per run via
+`S.xrayHintShown`). Script tag now `game.js?v=2` — bump on every game.js change. Verified in
+browser: perfect-call structural run (3/3 certified) and bypass miss path (1/2, miss
+framing); zero console errors.
+
 ## Next steps
 
 1. Enable or confirm GitHub Pages for `minerclass/load-bearing` from the `main` branch.
