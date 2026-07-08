@@ -49,6 +49,8 @@ kbd { font-family:var(--mono); font-size:.78em; border:1px solid var(--line); bo
 
 .btn { display:inline-flex; align-items:center; gap:10px; padding:13px 24px; border:1px solid var(--gold); border-radius:999px; background:var(--gold); color:#241c08; font-weight:750; cursor:pointer; transition:transform .15s ease; }
 .btn:hover { transform:translateY(-2px); }
+.btn.ghost { background:transparent; color:var(--paper); border-color:var(--line); }
+.btn.ghost:hover { border-color:var(--gold); color:var(--gold); }
 .credit { color:var(--dim); font-size:.8rem; margin-top:22px; }
 .credit a { color:var(--gold); }
 
@@ -97,7 +99,15 @@ kbd { font-family:var(--mono); font-size:.78em; border:1px solid var(--line); bo
 .fbkind { font-family:var(--mono); font-size:.7rem; text-transform:uppercase; letter-spacing:.1em; margin-bottom:7px; font-weight:700; }
 .fbkind.str { color:var(--gold); } .fbkind.clad { color:#e0d9c4; } .fbkind.acc { color:var(--teal); } .fbkind.warn { color:var(--coral); }
 .fbtext { line-height:1.5; color:#ece6d6; }
+.fbhint { margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); font-family:var(--mono); font-size:.8rem; color:var(--teal); }
+.fbverdictcall { margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); font-family:var(--mono); font-size:.82rem; letter-spacing:.03em; }
+.fbverdictcall.hit { color:var(--teal); }
+.fbverdictcall.miss { color:var(--coral); }
 .row { display:flex; justify-content:flex-end; margin-top:14px; }
+.predictrow { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:16px; justify-content:flex-end; }
+.predictlabel { font-family:var(--mono); font-size:.74rem; text-transform:uppercase; letter-spacing:.08em; color:#cfc8b4; margin-right:auto; }
+.caliline { font-family:var(--mono); font-size:.84rem; color:var(--teal); margin:12px 2px 0; }
+.caliline.miss { color:#e0a23c; }
 
 .inspectnote { color:var(--dim); font-size:.9rem; font-style:italic; }
 

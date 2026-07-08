@@ -102,7 +102,9 @@ function reset() {
     load: 0,               // next load to run (0..2)
     loadsHeld: 0,
     loadFailed: false,
-    xray: false
+    xray: false,
+    xrayHintShown: false,
+    predictions: []        // {call: boolean(holds), actual: boolean} per load run
   };
 }
 
@@ -406,6 +408,13 @@ function pick(i) {
   $("fbKind").className = "fbkind " + fbKind;
   $("fbKind").textContent = fbLabel;
   $("fbText").textContent = fbText;
+  // Coach the core verb the first time the artifact and the trace diverge
+  if (S.cladPolish > 0 && !S.xrayHintShown) {
+    S.xrayHintShown = true;
+    $("fbHint").style.display = "block";
+  } else {
+    $("fbHint").style.display = "none";
+  }
   $("feedback").style.display = "block";
   $("continueBtn").style.display = "inline-flex";
   $("continueBtn").focus();
@@ -449,16 +458,28 @@ const LOAD_DESCS = [
 
 function startLoadTest() {
   show("loadtest");
-  S.load = 0; S.loadsHeld = 0; S.loadFailed = false;
+  S.load = 0; S.loadsHeld = 0; S.loadFailed = false; S.predictions = [];
   for (let i = 0; i < 3; i++) { const c = $("load-" + i); c.className = "loadchip"; }
   $("load-0").classList.add("now");
   $("loadSub").textContent = "Three tasks cross the bridge, each heavier than the last. " + LOAD_DESCS[0];
   $("loadFeedback").style.display = "none";
-  $("loadBtn").style.display = "inline-flex";
-  $("loadBtn").textContent = "Run Load 1: Recall →";
+  $("loadBtn").style.display = "none";
   $("loadBtn").onclick = runLoad; // reset — a prior run leaves this pointed at debrief
+  showPredictRow();
   drawBridge($("bridge2"), "artifact");
-  announce("Assessment day. Three loads will cross the bridge.");
+  announce("Assessment day. Three loads will cross the bridge. Call the first one: holds or fails?");
+}
+
+function showPredictRow() {
+  $("predictLabel").textContent = "Load " + (S.load + 1) + " · " + LOAD_NAMES[S.load] + " — your call before it rolls (1 or 2):";
+  $("predictRow").style.display = "flex";
+  $("predictHold").focus();
+}
+
+function predict(callHolds) {
+  $("predictRow").style.display = "none";
+  S.predictions.push({ call: callHolds, actual: loadHolds(S.load) });
+  runLoad();
 }
 
 function firstWeakFrac() {
@@ -493,19 +514,31 @@ function runLoad() {
           : "Not enough members for this weight. The structure was real — there just wasn’t enough of it for " + LOAD_NAMES[S.load].toLowerCase() + ".");
       for (let i = S.load + 1; i < 3; i++) $("load-" + i).classList.add("failed");
     }
+    // score the player's call
+    const pred = S.predictions[S.load];
+    const cv2 = $("callVerdict");
+    if (pred) {
+      const hit = pred.call === holds;
+      cv2.className = "fbverdictcall " + (hit ? "hit" : "miss");
+      cv2.textContent = "YOUR CALL: " + (pred.call ? "holds" : "fails") + " — " +
+        (hit ? "correct. You read the structure, not the shine."
+             : "missed. " + (holds ? "There was more real structure under there than it looked." : "The polish was doing the convincing — the members weren't there."));
+      cv2.style.display = "block";
+    } else { cv2.style.display = "none"; }
+
     $("loadFeedback").style.display = "block";
-    announce("Load " + (S.load + 1) + " " + (holds ? "held." : "failed."));
+    announce("Load " + (S.load + 1) + " " + (holds ? "held." : "failed.") + (pred && pred.call === holds ? " Your call was correct." : " Your call missed."));
     S.load++;
     if (!holds || S.load >= 3) {
       $("loadBtn").textContent = "See the debrief →";
       $("loadBtn").onclick = debrief;
+      $("loadBtn").style.display = "inline-flex";
+      $("loadBtn").focus();
     } else {
-      $("loadBtn").textContent = "Run Load " + (S.load + 1) + ": " + LOAD_NAMES[S.load] + " →";
       $("load-" + S.load).classList.add("now");
       $("loadSub").textContent = LOAD_DESCS[S.load];
+      showPredictRow();
     }
-    $("loadBtn").style.display = "inline-flex";
-    $("loadBtn").focus();
   };
 
   if (REDUCED) {
@@ -553,6 +586,18 @@ function debrief() {
   $("statChallenge").style.color =
     (chall >= PRODUCTIVE_CHALLENGE[0] && chall <= PRODUCTIVE_CHALLENGE[1]) ? "var(--teal)" :
     (chall < PRODUCTIVE_CHALLENGE[0] ? "var(--coral)" : "#e0a23c");
+
+  // judgment calibration: how well the player predicted their own bridge
+  const hits = S.predictions.filter(p => p.call === p.actual).length;
+  const calEl = $("calibLine");
+  if (S.predictions.length) {
+    const perfect = hits === S.predictions.length;
+    calEl.className = "caliline" + (perfect ? "" : " miss");
+    calEl.textContent = "JUDGMENT CALIBRATION: you called " + hits + " of " + S.predictions.length +
+      " loads correctly — " + (perfect
+        ? "your read of the structure matched the structure. That prediction skill is the calibration the framework asks of teachers."
+        : "where the calls missed, polish was standing in for structure. Reading past the artifact is the skill this game trains.");
+  } else { calEl.textContent = ""; }
 
   let head, sub;
   if (S.loadsHeld === 3 && cracks.length === 0 && !sam) {
@@ -616,6 +661,8 @@ $("replayBtn").addEventListener("click", start);
 $("continueBtn").addEventListener("click", nextSlot);
 $("inspectBtn").addEventListener("click", () => { show("play"); renderSlot(); });
 $("loadBtn").onclick = runLoad; // property, not addEventListener — the handler is swapped to debrief() at test end
+$("predictHold").addEventListener("click", () => predict(true));
+$("predictFail").addEventListener("click", () => predict(false));
 
 const xb = $("xrayBtn");
 ["mousedown", "touchstart"].forEach(ev => xb.addEventListener(ev, (e) => { e.preventDefault(); setXray(true); }));
@@ -628,6 +675,9 @@ document.addEventListener("keydown", (e) => {
   if ($("play").classList.contains("active")) {
     if (!S.picked && e.key >= "1" && e.key <= "3") pick(parseInt(e.key, 10) - 1);
     else if (S.picked && e.key === "Enter" && document.activeElement !== $("continueBtn")) nextSlot();
+  } else if ($("loadtest").classList.contains("active") && $("predictRow").style.display !== "none") {
+    if (e.key === "1") predict(true);
+    else if (e.key === "2") predict(false);
   }
 });
 document.addEventListener("keyup", (e) => { if (e.key === "x" || e.key === "X") setXray(false); });

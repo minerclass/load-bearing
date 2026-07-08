@@ -67,6 +67,7 @@
     <div class="feedback" id="feedback" style="display:none">
       <div class="fbkind" id="fbKind"></div>
       <div class="fbtext" id="fbText"></div>
+      <div class="fbhint" id="fbHint" style="display:none">Hold the X-ray <kbd>X</kbd> &mdash; did that choice change what's under the deck?</div>
     </div>
     <div class="row"><button class="btn" id="continueBtn" style="display:none">Continue &rarr;</button></div>
   </section>
@@ -102,6 +103,12 @@
     <div class="feedback" id="loadFeedback" style="display:none">
       <div class="fbkind" id="loadFbKind"></div>
       <div class="fbtext" id="loadFbText"></div>
+      <div class="fbverdictcall" id="callVerdict" style="display:none"></div>
+    </div>
+    <div class="predictrow" id="predictRow" style="display:none" role="group" aria-label="Predict the load outcome">
+      <span class="predictlabel" id="predictLabel">Your call before it rolls &mdash; press 1 or 2:</span>
+      <button class="btn ghost" id="predictHold">1 &middot; It holds</button>
+      <button class="btn ghost" id="predictFail">2 &middot; It fails</button>
     </div>
     <div class="row"><button class="btn" id="loadBtn">Run Load 1 &rarr;</button></div>
   </section>
@@ -129,6 +136,7 @@
       <div class="stat"><span class="lbl">Loads held</span><span class="val" id="statLoads">0 / 3</span></div>
       <div class="stat"><span class="lbl">Productive challenge</span><span class="val" id="statChallenge">0%</span></div>
     </div>
+    <p class="caliline" id="calibLine"></p>
 
     <h3 class="subhead">Who got across</h3>
     <ul class="crossings" id="crossings"></ul>
@@ -140,6 +148,6 @@
   </section>
 
 </div>
-<script src="game.js"></script>
+<script src="game.js?v=2"></script>
 </body>
 </html>
