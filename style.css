@@ -1,9 +1,13 @@
 /* LOAD-BEARING — blueprint / drafting-table aesthetic
    ink ground, cyanotype grid, gold members, cream cladding, coral stress */
 :root {
-  --ink:#0d1b24; --ink2:#12242f; --paper:#f2ead9; --dim:#9aa8ae;
+  /* --paper is the TEXT here and --ink the ground. The ground is painted by a
+     hardcoded gradient carrying this essay's structural blue, so it stays local;
+     the text colours join the shared ink with pre-adoption fallbacks. */
+  --ink:#0d1b24; --ink2:#12242f; --paper:var(--mjm-ink,#f2ead9); --dim:var(--mjm-muted,#9aa8ae);
   --gold:#d9a13a; --cream:#f5ecd8; --coral:#d4685d; --teal:#4fb7ad;
-  --blue:#5f87ad; --line:rgba(242,234,217,.16);
+  --blue:#5f87ad; --line:var(--mjm-line,rgba(242,234,217,.16));
+  --mjm-accent:var(--mjm-gold,#d9a13a);
   --serif:Georgia,"Times New Roman",serif;
   --sans:"Segoe UI",system-ui,-apple-system,sans-serif;
   --mono:Consolas,"Courier New",monospace;
