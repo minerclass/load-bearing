@@ -20,6 +20,7 @@
     <button type="button" id="viewRoad" aria-pressed="true">From the road</button>
     <button type="button" id="viewUnder" aria-pressed="false">Underneath <kbd>X</kbd></button>
     <button type="button" id="viewSide" aria-pressed="false">Side</button>
+    <button type="button" id="viewWalk" aria-pressed="false">Walk the deck</button>
   </div>
   <div class="meta">
     <span id="slotLabel">Lesson 1 of 6</span>
@@ -30,6 +31,16 @@
 <main>
   <div class="stage" id="stage">
     <canvas id="scene" tabindex="0" aria-label="3D view of the bridge across the gorge. Drag or use the arrow keys to look around. The plan view below gives the same information as text."></canvas>
+    <div class="walkbar" id="walkbar" hidden>
+      <p id="walkNote" aria-live="polite"></p>
+      <div class="walkpad" role="group" aria-label="Walk controls">
+        <button type="button" data-move="left">Turn left</button>
+        <button type="button" data-move="forward">Forward</button>
+        <button type="button" data-move="back">Back</button>
+        <button type="button" data-move="right">Turn right</button>
+      </div>
+      <p class="hint">W A S D or the arrow keys walk and turn. Drag to look around.</p>
+    </div>
     <p class="nogl" id="nogl" hidden>3D is not available on this device, so the game is running in plan view. Everything works the same way.</p>
   </div>
 

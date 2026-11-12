@@ -9,6 +9,7 @@ Open `index.html` through any static server, for example `python3 -m http.server
 - **Placement matters.** A bay carries what is under it plus half of what is under each neighbour. Two thin lessons side by side fail where one thin lesson between two strong ones might hold.
 - **The shortcut is not labelled.** Cards show the work and the class time. What a card built is visible only by looking underneath.
 - **Access is not a penalty.** An access brace carries like a two-member bay, and support chosen before a barrier appears prevents the barrier.
+- **You can walk the deck.** A first-person view at eye height. From up there you see the surface and nothing below it, and you can only go as far as the deck is built.
 - **Every run can be won.** The page checks the deal before it starts.
 
 ## Files
@@ -22,6 +23,7 @@ Open `index.html` through any static server, for example `python3 -m http.server
 
 - The plan view is a text table of the same bridge. It opens automatically when 3D is unavailable, and `?plan=1` forces it.
 - All choices work by keyboard (1 to 3 for cards, 1 and 2 for load calls, X for the underside).
+- Walking works with W A S D or the arrow keys, by dragging, or with the four on-screen buttons, which also take single steps when pressed from the keyboard.
 - Reduced-motion settings skip the build and crossing animations.
 - `?low=1` forces the low-power renderer. It is chosen automatically on devices with four or fewer cores.
 

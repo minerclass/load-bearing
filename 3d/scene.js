@@ -79,6 +79,7 @@ window.LBScene = (function () {
       g.position.x = -HALF + BAY_LEN * i + BAY_LEN / 2;
       scene.add(g); bays.push({ group: g, grow: 1, fall: null });
     }
+    const solid = [], narrow = [];   // which bays can be walked on, and which are a single plank
     function clear(g) { while (g.children.length) g.remove(g.children[0]); }
     function diagonal(g, material, z, x0, y0, x1, y1) {
       const dx = x1 - x0, dy = y1 - y0;
@@ -92,6 +93,7 @@ window.LBScene = (function () {
     function buildBay(i, bay) {
       const b = bays[i], g = b.group, z = DECK_W / 2 - 0.2;
       clear(g); g.visible = true; g.position.y = 0; g.rotation.set(0, 0, 0); b.fall = null;
+      solid[i] = !!bay; narrow[i] = !!bay && bay.kind === "idle";
       if (!bay) return;
       if (bay.kind === "idle") {
         box(g, BAY_LEN, 0.08, 0.7, M.plank, 0, 0.1, 0);
@@ -162,7 +164,7 @@ window.LBScene = (function () {
       cart.position.set(-HALF - 5, 0.18, 0); cart.rotation.set(0, 0, 0); cart.visible = true;
       const failX = failBay < 0 ? null : bays[failBay].group.position.x;
       if (reduced) {
-        if (failBay >= 0) { bays[failBay].group.visible = false; cart.visible = false; }
+        if (failBay >= 0) { bays[failBay].group.visible = false; cart.visible = false; solid[failBay] = false; if (mode === "walk") placeWalk(); }
         else cart.position.x = HALF + 5;
         dirty = true; setTimeout(done, 300); return;
       }
@@ -179,7 +181,11 @@ window.LBScene = (function () {
         const g = bays[run.failBay].group;
         g.position.y -= run.v * dt; g.rotation.z -= 0.9 * dt; g.rotation.x += 0.5 * dt;
         cart.position.y -= run.v * dt; cart.position.x += 2 * dt; cart.rotation.z -= 1.6 * dt;
-        if (run.t > 1.5) { g.visible = false; cart.visible = false; const d = run.done; run = null; d(); }
+        if (run.t > 1.5) {
+          g.visible = false; cart.visible = false; solid[run.failBay] = false;
+          if (mode === "walk") placeWalk();
+          const d = run.done; run = null; d();
+        }
       }
       dirty = true;
     }
@@ -195,6 +201,7 @@ window.LBScene = (function () {
     }
     function view(name, instant) {
       const v = VIEWS[name]; if (!v) return;
+      if (mode === "walk") { mode = "orbit"; releaseAll(); resize(); }
       const p = new T.Vector3().fromArray(v.pos), t = new T.Vector3().fromArray(v.target);
       if (instant || reduced) {
         target.copy(t); sph.setFromVector3(p.sub(t)); tween = null; place(); return;
@@ -218,14 +225,24 @@ window.LBScene = (function () {
     });
     canvas.addEventListener("pointermove", function (e) {
       if (!drag) return;
+      if (mode === "walk") {
+        walk.yaw -= (e.clientX - drag.x) * 0.005; walk.pitch += (e.clientY - drag.y) * 0.005;
+        drag.x = e.clientX; drag.y = e.clientY; placeWalk(); return;
+      }
       sph.theta -= (e.clientX - drag.x) * 0.006; sph.phi -= (e.clientY - drag.y) * 0.006;
       drag.x = e.clientX; drag.y = e.clientY; place();
     });
     ["pointerup", "pointercancel"].forEach(function (n) { canvas.addEventListener(n, function () { drag = null; }); });
     canvas.addEventListener("wheel", function (e) {
+      if (mode === "walk") return;
       e.preventDefault(); tween = null; sph.radius *= e.deltaY > 0 ? 1.08 : 0.93; place();
     }, { passive: false });
     canvas.addEventListener("keydown", function (e) {
+      if (mode === "walk") {
+        const name = WALK_KEYS[e.key.length === 1 ? e.key.toLowerCase() : e.key];
+        if (name) { held[name] = true; e.preventDefault(); }
+        return;
+      }
       const step = 0.12;
       if (e.key === "ArrowLeft") sph.theta -= step;
       else if (e.key === "ArrowRight") sph.theta += step;
@@ -237,12 +254,67 @@ window.LBScene = (function () {
       e.preventDefault(); tween = null; place();
     });
 
+    /* ---- walking the deck ----
+       First person, at eye height. You can only go where there is deck:
+       the walk stops at the first bay that is unbuilt or has fallen. */
+    let mode = "orbit";
+    const EYE = 1.75, FAR = HALF + 9;
+    const walk = { x: 0, z: 0, yaw: 0, pitch: 0, where: null };
+    const held = { forward: false, back: false, left: false, right: false };
+    const WALK_KEYS = { w: "forward", s: "back", a: "left", d: "right",
+      ArrowUp: "forward", ArrowDown: "back", ArrowLeft: "left", ArrowRight: "right" };
+    function releaseAll() { held.forward = held.back = held.left = held.right = false; }
+    function walkLimit() {
+      for (let i = 0; i < BAYS; i++) if (!solid[i]) return -HALF + BAY_LEN * i - 0.35;
+      return FAR;
+    }
+    function placeWalk() {
+      const max = walkLimit();
+      walk.x = Math.max(-FAR, Math.min(max, walk.x));
+      const onBridge = walk.x > -HALF && walk.x < HALF;
+      const i = onBridge ? Math.floor((walk.x + HALF) / BAY_LEN) : (walk.x <= -HALF ? -1 : BAYS);
+      const half = onBridge ? (narrow[i] ? 0.2 : 1.15) : 1.5;
+      walk.z = Math.max(-half, Math.min(half, walk.z));
+      walk.pitch = Math.max(-1.2, Math.min(1.2, walk.pitch));
+      camera.position.set(walk.x, EYE, walk.z);
+      const cp = Math.cos(walk.pitch);
+      camera.lookAt(walk.x + Math.cos(walk.yaw) * cp, EYE + Math.sin(walk.pitch), walk.z + Math.sin(walk.yaw) * cp);
+      dirty = true;
+      const atEdge = max < FAR && walk.x >= max - 0.01;
+      const where = i + (atEdge ? "e" : "");
+      if (where !== walk.where) { walk.where = where; if (opts.onBay) opts.onBay(i, atEdge); }
+    }
+    function startWalk() {
+      mode = "walk"; tween = null; releaseAll();
+      walk.x = -HALF - 5; walk.z = 0; walk.yaw = 0; walk.pitch = -0.06; walk.where = null;
+      resize(); placeWalk();
+    }
+    function stepWalk(dt) {
+      if (mode !== "walk") return;
+      const turn = (held.right ? 1 : 0) - (held.left ? 1 : 0), move = (held.forward ? 1 : 0) - (held.back ? 1 : 0);
+      if (!turn && !move) return;
+      walk.yaw += turn * 1.7 * dt;
+      walk.x += Math.cos(walk.yaw) * move * 4.2 * dt; walk.z += Math.sin(walk.yaw) * move * 4.2 * dt;
+      placeWalk();
+    }
+    function nudge(name) {   // one step, for buttons pressed from the keyboard or a switch
+      if (mode !== "walk") return;
+      if (name === "left") walk.yaw -= 0.3; else if (name === "right") walk.yaw += 0.3;
+      else { const m = name === "forward" ? 1.3 : -1.3; walk.x += Math.cos(walk.yaw) * m; walk.z += Math.sin(walk.yaw) * m; }
+      placeWalk();
+    }
+    window.addEventListener("keyup", function (e) {
+      const name = WALK_KEYS[e.key.length === 1 ? e.key.toLowerCase() : e.key];
+      if (name) held[name] = false;
+    });
+    window.addEventListener("blur", releaseAll);
+
     function resize() {
       const w = canvas.clientWidth, h = canvas.clientHeight;
       if (!w || !h) return;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
-      camera.fov = w / h < 1 ? 62 : 48;
+      camera.fov = mode === "walk" ? 66 : (w / h < 1 ? 62 : 48);
       camera.updateProjectionMatrix(); dirty = true;
     }
     if (window.ResizeObserver) new ResizeObserver(resize).observe(canvas);
@@ -252,7 +324,7 @@ window.LBScene = (function () {
     canvas.addEventListener("webglcontextlost", function (e) { e.preventDefault(); lost = true; if (opts.onLost) opts.onLost(); });
     function loop(now) {
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
-      stepTween(dt); stepRun(dt);
+      stepTween(dt); stepRun(dt); stepWalk(dt);
       bays.forEach(function (b) {
         if (b.grow < 1) { b.grow = Math.min(1, b.grow + dt / 0.6); applyGrow(b); dirty = true; }
       });
@@ -266,6 +338,9 @@ window.LBScene = (function () {
       setBay: setBay,
       reset: function () { for (let i = 0; i < BAYS; i++) setBay(i, null, false); cart.visible = false; run = null; },
       view: view,
+      walk: startWalk,
+      hold: function (name, on) { if (mode === "walk" && name in held) held[name] = !!on; },
+      nudge: nudge,
       runLoad: runLoad,
       setReduced: function (v) { reduced = !!v; },
       stats: function () { return { frames: frames, calls: renderer.info.render.calls, triangles: renderer.info.render.triangles }; }

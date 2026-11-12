@@ -23,7 +23,7 @@
   }
   if (params.get("plan") === "1" || !window.THREE) planOnly();
   else {
-    scene = window.LBScene.create($("scene"), { low: lowPower, reduced: reduced, onLost: planOnly });
+    scene = window.LBScene.create($("scene"), { low: lowPower, reduced: reduced, onLost: planOnly, onBay: walkNote });
     if (!scene) planOnly();
   }
 
@@ -36,13 +36,28 @@
   }
   function setView(name) {
     if (!scene) return;
-    scene.view(name);
-    [["road", "viewRoad"], ["under", "viewUnder"], ["side", "viewSide"]].forEach(function (v) {
+    $("walkbar").hidden = name !== "walk";
+    if (name === "walk") { scene.walk(); $("scene").focus({ preventScroll: true }); }
+    else scene.view(name);
+    [["road", "viewRoad"], ["under", "viewUnder"], ["side", "viewSide"], ["walk", "viewWalk"]].forEach(function (v) {
       $(v[1]).setAttribute("aria-pressed", String(v[0] === name));
     });
     currentView = name;
   }
   let currentView = "road";
+  /* What you can tell from where you are standing: the surface, and nothing below it. */
+  function walkNote(i, atEdge) {
+    let text;
+    if (i < 0) text = "On the road. The bridge is ahead." + (atEdge ? " Nothing is built yet, so the deck stops here." : "");
+    else if (i >= R.BAYS) text = "Across. This is the far side of the gorge.";
+    else {
+      const b = S && S.bays[i];
+      text = "Bay " + (i + 1) + (b ? ": " + b.card.name + ". " + roadText(b) + "." : ".");
+      if (b && b.crack) text += " The gate here is closed to " + R.STUDENTS[b.crack] + ".";
+      if (atEdge) text += " The deck ends just ahead.";
+    }
+    $("walkNote").textContent = text;
+  }
   function hud() {
     $("slotLabel").textContent = S.slot < R.BAYS ? "Lesson " + (S.slot + 1) + " of " + R.BAYS : "Load test";
     $("hoursVal").textContent = S.time;
@@ -221,6 +236,17 @@
   $("viewRoad").addEventListener("click", function () { setView("road"); });
   $("viewUnder").addEventListener("click", function () { setView("under"); });
   $("viewSide").addEventListener("click", function () { setView("side"); });
+  $("viewWalk").addEventListener("click", function () { setView("walk"); });
+  document.querySelectorAll(".walkpad button").forEach(function (b) {
+    const name = b.dataset.move;
+    b.addEventListener("pointerdown", function (e) { e.preventDefault(); if (scene) scene.hold(name, true); });
+    ["pointerup", "pointerleave", "pointercancel"].forEach(function (n) {
+      b.addEventListener(n, function () { if (scene) scene.hold(name, false); });
+    });
+    b.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    // activated from the keyboard or a switch: take one step
+    b.addEventListener("click", function (e) { if (e.detail === 0 && scene) scene.nudge(name); });
+  });
   document.addEventListener("keydown", function (e) {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     const t = e.target, typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT");

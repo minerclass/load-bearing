@@ -19,7 +19,7 @@ em { font-style:italic; color:var(--gold); }
 .bar { display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; padding:10px 16px; border-bottom:1px solid var(--line); }
 .brand strong { font:700 1.15rem var(--serif); }
 .tag { margin-left:8px; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); border:1px solid var(--line); border-radius:99px; padding:2px 8px; }
-.views { display:flex; gap:6px; margin-left:auto; }
+.views { display:flex; flex-wrap:wrap; gap:6px; margin-left:auto; }
 .meta { display:flex; gap:14px; font-size:.9rem; color:var(--dim); }
 .meta b { color:var(--gold); font-size:1.1rem; }
 
@@ -33,6 +33,12 @@ main { max-width:1100px; margin:0 auto; padding:0 16px 32px; }
 .stage { margin:14px 0; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#cfdadb; }
 #scene { display:block; width:100%; height:min(52vh,520px); min-height:260px; touch-action:none; cursor:grab; }
 #scene:active { cursor:grabbing; }
+.walkbar { background:var(--ink2); color:var(--paper); padding:10px 14px; display:grid; gap:8px; }
+.walkbar p { margin:0; max-width:none; }
+#walkNote { min-height:1.5em; font-weight:600; }
+.walkpad { display:flex; flex-wrap:wrap; gap:6px; }
+.walkpad button { flex:1 1 110px; touch-action:none; user-select:none; -webkit-user-select:none; }
+.walkbar .hint { font-size:.82rem; color:var(--dim); }
 .nogl { margin:0; padding:14px 16px; color:#1b2a33; }
 
 .panel { background:var(--ink2); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
@@ -70,7 +76,7 @@ footer { margin-top:18px; font-size:.8rem; color:var(--dim); }
 footer a { color:var(--gold); }
 
 @media (max-width:760px) {
-  .views { margin-left:0; width:100%; } .views button { flex:1; padding:8px 6px; }
+  .views { margin-left:0; width:100%; } .views button { flex:1 1 40%; padding:8px 6px; }
   .cards { grid-template-columns:1fr; }
   #scene { height:38vh; }
 }
