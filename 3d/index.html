@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Load-Bearing 3D, a prototype. Plan six lessons and watch them become a bridge across a gorge. From the road two bridges look the same. Walk underneath to see which one was built.">
+<title>Load-Bearing 3D | Prototype</title>
+<link rel="stylesheet" href="https://minerclass.github.io/tokens.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="announcer" class="sr-only" aria-live="polite"></div>
+
+<header class="bar">
+  <div class="brand">
+    <strong>Load-<em>Bearing</em> 3D</strong>
+    <span class="tag">Prototype</span>
+  </div>
+  <div class="views" role="group" aria-label="Camera">
+    <button type="button" id="viewRoad" aria-pressed="true">From the road</button>
+    <button type="button" id="viewUnder" aria-pressed="false">Underneath <kbd>X</kbd></button>
+    <button type="button" id="viewSide" aria-pressed="false">Side</button>
+  </div>
+  <div class="meta">
+    <span id="slotLabel">Lesson 1 of 6</span>
+    <span class="hours"><b id="hoursVal">12</b> hrs left</span>
+  </div>
+</header>
+
+<main>
+  <div class="stage" id="stage">
+    <canvas id="scene" tabindex="0" aria-label="3D view of the bridge across the gorge. Drag or use the arrow keys to look around. The plan view below gives the same information as text."></canvas>
+    <p class="nogl" id="nogl" hidden>3D is not available on this device, so the game is running in plan view. Everything works the same way.</p>
+  </div>
+
+  <section class="panel" id="panel" aria-live="off">
+    <!-- intro -->
+    <div class="step" id="stepIntro">
+      <h1>Two bridges can look the same from the road.</h1>
+      <p>You have six lessons and twelve hours to get a class across one question: <em>was Reconstruction a success, a failure, or both, and for whom?</em> Each lesson builds one bay of the bridge. Then three loads cross it.</p>
+      <p class="dim">Look underneath whenever you like. Where a thin lesson sits matters, because each bay leans on its neighbours.</p>
+      <button type="button" class="primary" id="startBtn">Start building</button>
+      <a class="quiet" href="../">Original 2D version</a>
+    </div>
+
+    <!-- choose -->
+    <div class="step" id="stepChoose" hidden>
+      <h2 id="chooseHead">Lesson 1. Choose the work.</h2>
+      <div class="cards" id="cards"></div>
+    </div>
+
+    <!-- feedback -->
+    <div class="step" id="stepFeedback" hidden>
+      <h2 id="fbHead"></h2>
+      <p id="fbText"></p>
+      <blockquote id="visit" hidden><span class="who">The principal, walking past</span><span id="visitQuote"></span></blockquote>
+      <button type="button" class="primary" id="continueBtn">Next lesson</button>
+    </div>
+
+    <!-- load test -->
+    <div class="step" id="stepLoad" hidden>
+      <h2 id="loadHead"></h2>
+      <p id="loadDesc"></p>
+      <div class="row" id="predictRow">
+        <span class="dim">Your call before it crosses:</span>
+        <button type="button" class="primary" id="predictHold"><kbd>1</kbd> It holds</button>
+        <button type="button" id="predictFail"><kbd>2</kbd> It fails</button>
+      </div>
+      <p id="loadResult" hidden></p>
+      <button type="button" class="primary" id="loadNext" hidden>Next load</button>
+    </div>
+
+    <!-- debrief -->
+    <div class="step" id="stepDebrief" hidden>
+      <h2 id="verdictHead"></h2>
+      <p id="verdictBody"></p>
+      <p id="calib" class="dim"></p>
+      <h3>Who got across</h3>
+      <ul id="crossings"></ul>
+      <h3>What each bay could carry</h3>
+      <div class="scroll"><table id="bayTable"><thead><tr><th scope="col">Bay</th><th scope="col">Lesson</th><th scope="col">Recall</th><th scope="col">Application</th><th scope="col">Transfer</th></tr></thead><tbody></tbody></table></div>
+      <p class="dim" id="thesis"></p>
+      <button type="button" class="primary" id="replayBtn">Build another bridge</button>
+    </div>
+  </section>
+
+  <details class="plan" id="plan">
+    <summary>Plan view (text version of the bridge)</summary>
+    <label class="check"><input type="checkbox" id="planUnder"> Show what is underneath each bay</label>
+    <div class="scroll"><table id="planTable"><thead><tr><th scope="col">Bay</th><th scope="col">Lesson</th><th scope="col">From the road</th><th scope="col" class="under">Underneath</th><th scope="col">Barrier</th></tr></thead><tbody></tbody></table></div>
+  </details>
+
+  <footer>
+    <p>A prototype built on the pedagogical friction framework Micah Miner is developing in his dissertation research. The numbers are an illustrative model, not a validated measure of learning. Maya, Jordan, and Sam are fictional design profiles. Nothing here calls an AI service or collects data. <a href="https://minerclass.github.io/games-hub/">Games Hub</a></p>
+  </footer>
+</main>
+
+<script src="vendor/three.min.js"></script>
+<script src="rules.js"></script>
+<script src="scene.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

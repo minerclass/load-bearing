@@ -1,0 +1,77 @@
+/* Load-Bearing 3D. Same ink, gold and cream as the 2D game.
+   The scene sits above the panel, so no text ever covers the bridge. */
+:root {
+  --ink:#0d1b24; --ink2:#132733; --paper:var(--mjm-ink,#f2ead9); --dim:var(--mjm-muted,#a9b6bb);
+  --gold:#d9a13a; --coral:#e07a6e; --teal:#5cc2b8; --line:rgba(242,234,217,.18);
+  --serif:Georgia,"Times New Roman",serif;
+  --sans:"Segoe UI",system-ui,-apple-system,sans-serif;
+}
+* { box-sizing:border-box; }
+html,body { margin:0; }
+body { font-family:var(--sans); color:var(--paper); background:var(--ink); line-height:1.5; }
+button,a { font:inherit; color:inherit; }
+:focus-visible { outline:3px solid var(--gold); outline-offset:2px; }
+[hidden] { display:none !important; }
+.sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+kbd { font:600 .75em var(--sans); border:1px solid var(--line); border-radius:4px; padding:0 .35em; }
+em { font-style:italic; color:var(--gold); }
+
+.bar { display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; padding:10px 16px; border-bottom:1px solid var(--line); }
+.brand strong { font:700 1.15rem var(--serif); }
+.tag { margin-left:8px; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); border:1px solid var(--line); border-radius:99px; padding:2px 8px; }
+.views { display:flex; gap:6px; margin-left:auto; }
+.meta { display:flex; gap:14px; font-size:.9rem; color:var(--dim); }
+.meta b { color:var(--gold); font-size:1.1rem; }
+
+button { background:var(--ink2); border:1px solid var(--line); border-radius:8px; padding:8px 14px; min-height:44px; cursor:pointer; }
+button:hover { border-color:var(--gold); }
+button[aria-pressed="true"] { border-color:var(--gold); color:var(--gold); }
+button.primary { background:var(--gold); color:#1b1408; border-color:var(--gold); font-weight:600; }
+a.quiet { margin-left:14px; color:var(--dim); }
+
+main { max-width:1100px; margin:0 auto; padding:0 16px 32px; }
+.stage { margin:14px 0; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#cfdadb; }
+#scene { display:block; width:100%; height:min(52vh,520px); min-height:260px; touch-action:none; cursor:grab; }
+#scene:active { cursor:grabbing; }
+.nogl { margin:0; padding:14px 16px; color:#1b2a33; }
+
+.panel { background:var(--ink2); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+h1,h2 { font-family:var(--serif); font-weight:700; margin:0 0 8px; line-height:1.2; }
+h1 { font-size:clamp(1.4rem,3vw,1.9rem); } h2 { font-size:1.25rem; }
+h3 { font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin:18px 0 6px; }
+p { margin:0 0 12px; max-width:70ch; }
+.dim { color:var(--dim); }
+.row { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+
+.cards { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.card { text-align:left; display:flex; flex-direction:column; gap:6px; padding:14px; height:100%; }
+.card .top { display:flex; justify-content:space-between; gap:8px; font-size:.8rem; color:var(--dim); }
+.card .name { font:700 1.02rem var(--serif); }
+.card .desc { font-size:.92rem; color:var(--dim); }
+.card .cost { color:var(--gold); white-space:nowrap; }
+
+blockquote { margin:0 0 14px; padding:10px 14px; border-left:3px solid var(--gold); background:rgba(217,161,58,.08); border-radius:0 8px 8px 0; }
+blockquote .who { display:block; font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); }
+
+ul { margin:0 0 12px; padding-left:1.1em; } li { margin-bottom:6px; max-width:75ch; }
+.scroll { overflow-x:auto; }
+table { border-collapse:collapse; width:100%; font-size:.9rem; }
+th,td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+th { color:var(--dim); font-weight:600; }
+td.ok { color:var(--teal); } td.no { color:var(--coral); font-weight:600; }
+tr.broke td:first-child { box-shadow:inset 3px 0 0 var(--coral); }
+
+.plan { margin-top:14px; border:1px solid var(--line); border-radius:12px; padding:12px 16px; }
+.plan summary { cursor:pointer; font-weight:600; min-height:32px; }
+.check { display:flex; gap:8px; align-items:center; margin:10px 0; min-height:44px; }
+.check input { width:20px; height:20px; }
+.plan:not(.show-under) .under { display:none; }
+footer { margin-top:18px; font-size:.8rem; color:var(--dim); }
+footer a { color:var(--gold); }
+
+@media (max-width:760px) {
+  .views { margin-left:0; width:100%; } .views button { flex:1; padding:8px 6px; }
+  .cards { grid-template-columns:1fr; }
+  #scene { height:38vh; }
+}
+@media (prefers-reduced-motion:reduce) { * { transition:none !important; animation:none !important; } }
