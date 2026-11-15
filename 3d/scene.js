@@ -190,12 +190,51 @@ window.LBScene = (function () {
       dirty = true;
     }
 
+    /* ---- the three students ----
+       Plain figures that walk the deck. `at` is a bay index to stop in front of,
+       -1 for the near road, or BAYS for the far side. */
+    const walkers = [0x3f6f8f, 0x8a5a78, 0x5d7d4a].map(function (color, k) {
+      const g = new T.Group(), m = mat(color);
+      box(g, 0.46, 1.05, 0.36, m, 0, 0.75, 0);
+      box(g, 0.32, 0.32, 0.32, m, 0, 1.5, 0);
+      g.scale.set(1.2, 1.2, 1.2);
+      g.position.set(-HALF - 3 - k * 0.9, 0.18, (k - 1) * 0.8); g.visible = false;
+      scene.add(g); return { group: g, to: g.position.x };
+    });
+    let walkersDone = null;
+    function walkerX(at, k) {
+      if (at < 0) return -HALF - 3 - k * 0.9;
+      if (at >= BAYS) return HALF + 3 + k * 0.9;
+      return -HALF + BAY_LEN * at - 0.2;
+    }
+    function setWalkers(ats, done) {
+      walkers.forEach(function (w, k) {
+        w.group.visible = true; w.to = walkerX(ats[k], k);
+        if (reduced) w.group.position.x = w.to;
+      });
+      dirty = true;
+      if (reduced) { if (done) setTimeout(done, 200); } else walkersDone = done || null;
+    }
+    function hideWalkers() { walkers.forEach(function (w, k) { w.group.visible = false; w.group.position.x = walkerX(-1, k); w.to = w.group.position.x; }); walkersDone = null; dirty = true; }
+    function stepWalkers(dt) {
+      let moving = false;
+      walkers.forEach(function (w) {
+        if (!w.group.visible) return;
+        const d = w.to - w.group.position.x;
+        if (Math.abs(d) < 0.02) return;
+        w.group.position.x += Math.sign(d) * Math.min(Math.abs(d), 5.5 * dt);
+        moving = true;
+      });
+      if (moving) dirty = true;
+      else if (walkersDone) { const d = walkersDone; walkersDone = null; d(); }
+    }
+
     /* ---- camera ---- */
     const target = new T.Vector3(), sph = new T.Spherical();
     let tween = null, reduced = !!opts.reduced, dirty = true;
     function place() {
       sph.phi = Math.max(0.25, Math.min(Math.PI - 0.25, sph.phi));
-      sph.radius = Math.max(9, Math.min(44, sph.radius));
+      sph.radius = Math.max(7, Math.min(44, sph.radius));
       camera.position.setFromSpherical(sph).add(target);
       camera.lookAt(target); dirty = true;
     }
@@ -206,6 +245,15 @@ window.LBScene = (function () {
       if (instant || reduced) {
         target.copy(t); sph.setFromVector3(p.sub(t)); tween = null; place(); return;
       }
+      tween = { p0: camera.position.clone(), t0: target.clone(), p1: p, t1: t, k: 0 };
+    }
+    /* Bring the camera close to one bay, from the near bank side, so a stopped
+       student and whatever is stopping them fill the view. */
+    function focusBay(i) {
+      const x = -HALF + BAY_LEN * i + BAY_LEN / 2;
+      if (mode === "walk") { mode = "orbit"; releaseAll(); resize(); }
+      const p = new T.Vector3(x - 6.5, 3.4, 8.5), t = new T.Vector3(x - 0.8, 0.5, 0);
+      if (reduced) { target.copy(t); sph.setFromVector3(p.sub(t)); tween = null; place(); return; }
       tween = { p0: camera.position.clone(), t0: target.clone(), p1: p, t1: t, k: 0 };
     }
     function stepTween(dt) {
@@ -324,7 +372,7 @@ window.LBScene = (function () {
     canvas.addEventListener("webglcontextlost", function (e) { e.preventDefault(); lost = true; if (opts.onLost) opts.onLost(); });
     function loop(now) {
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
-      stepTween(dt); stepRun(dt); stepWalk(dt);
+      stepTween(dt); stepRun(dt); stepWalk(dt); stepWalkers(dt);
       bays.forEach(function (b) {
         if (b.grow < 1) { b.grow = Math.min(1, b.grow + dt / 0.6); applyGrow(b); dirty = true; }
       });
@@ -336,7 +384,10 @@ window.LBScene = (function () {
 
     return {
       setBay: setBay,
-      reset: function () { for (let i = 0; i < BAYS; i++) setBay(i, null, false); cart.visible = false; run = null; },
+      reset: function () { for (let i = 0; i < BAYS; i++) setBay(i, null, false); cart.visible = false; run = null; hideWalkers(); },
+      setWalkers: setWalkers,
+      focusBay: focusBay,
+      hideWalkers: hideWalkers,
       view: view,
       walk: startWalk,
       hold: function (name, on) { if (mode === "walk" && name in held) held[name] = !!on; },

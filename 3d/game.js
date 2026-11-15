@@ -30,7 +30,7 @@
   /* ---------- helpers ---------- */
   function announce(text) { $("announcer").textContent = ""; setTimeout(function () { $("announcer").textContent = text; }, 30); }
   function step(id) {
-    ["stepIntro", "stepChoose", "stepFeedback", "stepLoad", "stepDebrief"].forEach(function (s) { $(s).hidden = s !== id; });
+    ["stepIntro", "stepChoose", "stepFeedback", "stepCross", "stepLoad", "stepDebrief"].forEach(function (s) { $(s).hidden = s !== id; });
     const h = $(id).querySelector("h1,h2");
     if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
   }
@@ -138,7 +138,7 @@
     const visit = S.slot === 3 ? principal() : null;
     $("visit").hidden = !visit;
     if (visit) $("visitQuote").textContent = visit;
-    $("continueBtn").textContent = S.slot < R.BAYS ? "Next lesson" : "Go to the load test";
+    $("continueBtn").textContent = S.slot < R.BAYS ? "Next lesson" : "Send the students across";
     step("stepFeedback");
     announce(res.feedback + (visit ? " The principal, walking past: " + visit : ""));
   }
@@ -149,7 +149,78 @@
     return "Hard to tell where this one is heading. Keep me posted.";
   }
   $("continueBtn").addEventListener("click", function () {
-    if (S.slot < R.BAYS) showChoose(); else showLoad();
+    if (S.slot < R.BAYS) showChoose(); else startCrossing();
+  });
+
+  /* ---------- the crossing ----------
+     Three students walk the finished bridge before any load does. Where one
+     stops, the player reads the stop: is this hard, or is it blocked? */
+  let stops = [], stopIndex = 0;
+  const WHO = ["Maya", "Jordan", "Sam"];
+  function walkerTargets() {
+    // each student walks to their own unresolved stop, or all the way across
+    return WHO.map(function (name) {
+      const st = stops.find(function (x, i) { return i >= stopIndex && x.who === name; });
+      // at a gate a student waits in front of it; at a hard lesson they are part-way into the bay
+      return st ? st.bay + (st.type === "hard" ? 0.45 : 0) : R.BAYS;
+    });
+  }
+  function startCrossing() {
+    stops = R.crossingStops(S); stopIndex = 0;
+    $("slotLabel").textContent = "The crossing";
+    setView("side");
+    step("stepCross");
+    showStop();
+  }
+  function showStop() {
+    const st = stops[stopIndex];
+    $("crossResult").hidden = true; $("crossNext").hidden = true;
+    document.querySelectorAll("#crossRow button").forEach(function (b) { b.disabled = false; });
+    if (!st) {
+      $("crossRow").hidden = true;
+      const text = stops.length
+        ? "All three students are across."
+        : "All three students walked straight across. Nothing stopped them, and nothing asked much of them either.";
+      $("crossHead").textContent = "The crossing";
+      $("crossText").textContent = text;
+      $("crossNext").textContent = "Go to the load test"; $("crossNext").hidden = false;
+      if (scene) { scene.setWalkers([R.BAYS, R.BAYS, R.BAYS]); scene.view("side"); }
+      $("crossNext").focus({ preventScroll: true });
+      announce(text);
+      return;
+    }
+    $("crossRow").hidden = false;
+    $("crossHead").textContent = st.who + " has stopped at bay " + (st.bay + 1) + ".";
+    $("crossText").textContent = "The lesson there is “" + S.bays[st.bay].card.name + ".” Look at what is stopping " + st.who + ", then choose.";
+    if (scene) { scene.setWalkers(walkerTargets()); scene.focusBay(st.bay); }
+    announce(st.who + " has stopped at bay " + (st.bay + 1) + ", " + S.bays[st.bay].card.name + ". " +
+      (S.bays[st.bay].crack ? "A gate is closed across the deck." : "The deck is open.") +
+      " Choose: give it time, remove what is in the way, or do the work for them.");
+  }
+  function respond(response) {
+    const st = stops[stopIndex];
+    if (!st || $("stepCross").hidden || $("crossRow").hidden) return;
+    const btn = document.querySelector('#crossRow button[data-response="' + response + '"]');
+    if (!btn || btn.disabled) return;
+    const res = R.resolveStop(S, st, response);
+    if (res.changed && scene) scene.setBay(st.bay, S.bays[st.bay], false);
+    renderPlan();
+    $("crossResult").textContent = res.text; $("crossResult").hidden = false;
+    announce(res.text);
+    if (!res.cleared) { btn.disabled = true; return; }
+    $("crossRow").hidden = true;
+    $("crossHead").textContent = st.who + " is across.";
+    stopIndex += 1;
+    if (scene) scene.setWalkers(walkerTargets());
+    $("crossNext").textContent = stopIndex < stops.length ? "Keep walking" : "Go to the load test";
+    $("crossNext").hidden = false; $("crossNext").focus({ preventScroll: true });
+  }
+  document.querySelectorAll("#crossRow button").forEach(function (b) {
+    b.addEventListener("click", function () { respond(b.dataset.response); });
+  });
+  $("crossNext").addEventListener("click", function () {
+    if (stopIndex < stops.length) showStop();
+    else { if (scene) scene.hideWalkers(); showLoad(); }
   });
 
   /* ---------- load test ---------- */
@@ -198,6 +269,12 @@
         ? "Your read of the structure matched the structure."
         : "Where a call missed, check whether the surface was standing in for what was underneath.");
 
+    const calls = S.crossCalls, read = calls.filter(function (c) { return c.correct; }).length;
+    $("crossCalib").textContent = calls.length
+      ? "At the crossing you read " + read + " of " + calls.length + (calls.length === 1 ? " stop" : " stops") + " correctly on the first response. " +
+        (read === calls.length ? "You told hard from blocked each time."
+          : "A hard lesson needs time. A closed gate needs something removed. Doing the work for a student clears either one and takes structure with it.")
+      : "No one stopped at the crossing.";
     const list = $("crossings"); list.textContent = "";
     const line = function (strong, rest) { const li = el("li"); li.appendChild(el("b", "", strong)); li.appendChild(document.createTextNode(rest)); list.appendChild(li); };
     line("Maya", x.ell.stoppedAt >= 0
@@ -253,6 +330,7 @@
     if (typing) return;
     if (e.key === "x" || e.key === "X") { setView(currentView === "under" ? "road" : "under"); return; }
     if (!$("stepChoose").hidden && e.key >= "1" && e.key <= "3") pick(parseInt(e.key, 10) - 1);
+    else if (!$("stepCross").hidden && e.key >= "1" && e.key <= "3") respond(["time", "remove", "doit"][parseInt(e.key, 10) - 1]);
     else if (!$("stepLoad").hidden && !$("predictRow").hidden) {
       if (e.key === "1") predict(true); else if (e.key === "2") predict(false);
     }

@@ -109,7 +109,7 @@
     return {
       seed: seed, rand: rng(seed), slot: 0, time: HOURS,
       bays: [], used: {}, repaired: {}, hasPE: false, cladUsed: false,
-      hand: null, load: 0, loadsHeld: 0, failedBay: -1, predictions: []
+      hand: null, load: 0, loadsHeld: 0, failedBay: -1, predictions: [], crossCalls: []
     };
   }
 
@@ -203,6 +203,63 @@
     return { card: card, feedback: feedback, changed: changed };
   }
 
+  /* ---- The crossing ----
+     Before the loads, the three students walk the bridge. Some stop.
+     A stop is one of two kinds, and the player has to tell which:
+       barrier  a closed gate. No amount of time opens it.
+       hard     the heaviest lesson on the bridge. Given time, the student gets through.
+     Every stop offers the same three responses, so the options are not a tell:
+       time     give it time
+       remove   remove what is in the way and leave the work
+       doit     do the work for them (two truss sets go with it) */
+  const SUPPORT = { ell: "A glossary and translated excerpts", dys: "Speech-to-text" };
+  const HARD_STUDENT = "Sam";
+
+  function crossingStops(s) {
+    const stops = [];
+    s.bays.forEach(function (b, i) {
+      if (b.crack) stops.push({ type: "barrier", key: b.crack, bay: i, who: STUDENTS[b.crack] });
+    });
+    let hard = -1;
+    s.bays.forEach(function (b, i) {
+      if (!b.crack && !b.brace && b.members >= 3 && (hard < 0 || b.members > s.bays[hard].members)) hard = i;
+    });
+    if (hard >= 0) stops.push({ type: "hard", key: "sam", bay: hard, who: HARD_STUDENT });
+    stops.sort(function (a, b) { return a.bay - b.bay; });
+    return stops;
+  }
+
+  /* Apply one response to one stop. Returns { cleared, text, changed }.
+     The first response to each stop is recorded as the player's read of it. */
+  function resolveStop(s, stop, response) {
+    const bay = s.bays[stop.bay];
+    const first = !stop.tried;
+    stop.tried = true;
+    const right = stop.type === "hard" ? "time" : "remove";
+    if (first) s.crossCalls.push({ type: stop.type, bay: stop.bay, response: response, correct: response === right });
+    if (stop.type === "hard") {
+      if (response === "doit") {
+        bay.members = Math.max(0, bay.members - 2); s.cladUsed = true;
+        return { cleared: true, changed: true,
+          text: stop.who + " is across. Two truss sets under this bay went with the work you took away." };
+      }
+      if (response === "remove") return { cleared: true, changed: false,
+        text: "There was nothing in the way to remove. " + stop.who + " was working, and crossed. Hard is not the same as blocked." };
+      return { cleared: true, changed: false,
+        text: "Given time, " + stop.who + " worked through it and crossed. The lesson was hard, and it was passable." };
+    }
+    if (response === "time") return { cleared: false, changed: false,
+      text: stop.who + " is still at the gate. More time and more effort do not open it." };
+    bay.crack = null; s.repaired[stop.key] = true;
+    if (response === "doit") {
+      bay.members = Math.max(0, bay.members - 2); s.cladUsed = true;
+      return { cleared: true, changed: true,
+        text: "The gate is open, and two truss sets went with it. The barrier and the thinking were removed together." };
+    }
+    return { cleared: true, changed: true,
+      text: SUPPORT[stop.key] + " opened the gate. Everything under the bay is still there." };
+  }
+
   function surface(b) { return Math.min(1, b.polish * 0.25); }
 
   function capacity(s, i) {
@@ -274,6 +331,7 @@
     BAYS: BAYS, solvable: solvable, HOURS: HOURS, LOADS: LOADS, DECK: DECK, STUDENTS: STUDENTS,
     newState: newState, deal: deal, choose: choose, capacity: capacity,
     wouldHold: wouldHold, runLoad: runLoad, openBarriers: openBarriers,
-    totalMembers: totalMembers, crossings: crossings, verdict: verdict
+    totalMembers: totalMembers, crossings: crossings, verdict: verdict,
+    crossingStops: crossingStops, resolveStop: resolveStop
   };
 });

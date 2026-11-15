@@ -48,7 +48,7 @@
     <!-- intro -->
     <div class="step" id="stepIntro">
       <h1>Two bridges can look the same from the road.</h1>
-      <p>You have six lessons and twelve hours to get a class across one question: <em>was Reconstruction a success, a failure, or both, and for whom?</em> Each lesson builds one bay of the bridge. Then three loads cross it.</p>
+      <p>You have six lessons and twelve hours to get a class across one question: <em>was Reconstruction a success, a failure, or both, and for whom?</em> Each lesson builds one bay of the bridge. Then three students walk it, and three loads cross it.</p>
       <p class="dim">Look underneath whenever you like. Where a thin lesson sits matters, because each bay leans on its neighbours.</p>
       <button type="button" class="primary" id="startBtn">Start building</button>
       <a class="quiet" href="../">Original 2D version</a>
@@ -66,6 +66,19 @@
       <p id="fbText"></p>
       <blockquote id="visit" hidden><span class="who">The principal, walking past</span><span id="visitQuote"></span></blockquote>
       <button type="button" class="primary" id="continueBtn">Next lesson</button>
+    </div>
+
+    <!-- the crossing -->
+    <div class="step" id="stepCross" hidden>
+      <h2 id="crossHead">The crossing</h2>
+      <p id="crossText"></p>
+      <div class="row" id="crossRow">
+        <button type="button" data-response="time"><kbd>1</kbd> Give it time</button>
+        <button type="button" data-response="remove"><kbd>2</kbd> Remove what is in the way</button>
+        <button type="button" data-response="doit"><kbd>3</kbd> Do the work for them</button>
+      </div>
+      <p id="crossResult" hidden></p>
+      <button type="button" class="primary" id="crossNext" hidden>Next</button>
     </div>
 
     <!-- load test -->
@@ -86,6 +99,7 @@
       <h2 id="verdictHead"></h2>
       <p id="verdictBody"></p>
       <p id="calib" class="dim"></p>
+      <p id="crossCalib" class="dim"></p>
       <h3>Who got across</h3>
       <ul id="crossings"></ul>
       <h3>What each bay could carry</h3>
